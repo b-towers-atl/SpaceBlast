@@ -6,21 +6,41 @@
 //  Copyright (c) 2015 Bobby Towers. All rights reserved.
 //
 
+/*
+- add asteroids to the moon as child, outside the moons radius... they should have a physics body
++ add health points to ship (health = 100)
+- listen for collision with ship... ship looses 20 health, if health = 0... ship explodes
+*/
+
 import SpriteKit
 
-class GameScene: SKScene {
+class Spaceship: SKSpriteNode {
+    
+    var health = 100
+    
+//    Spaceship.physicsBody = SKPhysicsBody(rectangleOfSize: Spaceship.size)
+    
+}
+
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var screenCenter: CGPoint!
+    
+    let ship = Spaceship(imageNamed: "spaceship")
     
     override func didMoveToView(view: SKView) {
 
         screenCenter = view.center
         
+        physicsWorld.gravity = CGVectorMake(0, 0)
+        
+        physicsWorld.contactDelegate = self
+        
+        self.physicsBody = SKPhysicsBody(edgeLoopFromRect: self.frame)
+        
         createMoon()
         
-        let ship = SKSpriteNode(imageNamed: "spaceship")
-        ship.position = screenCenter
-        self.addChild(ship)
+        createShip()
         
         // add gestures up and down to move ship
         
@@ -42,6 +62,20 @@ class GameScene: SKScene {
    
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
+        
+        if ship.health <= 0 {
+            ship.removeFromParent()
+        }
+    }
+    
+    func createShip() {
+    
+        ship.position = screenCenter
+        ship.physicsBody = SKPhysicsBody(rectangleOfSize: ship.size)
+//        ship.physicsBody.categoryBitMask = PhysicsCategory.Spaceship
+//        ship.physicsBody.contactTestBitMask = PhysicsCategory.Asteroid
+        self.addChild(ship)
+        
     }
     
     func createMoon() {
@@ -81,6 +115,38 @@ class GameScene: SKScene {
             
         }
         
+        // our asteroids
+        let asteroids: [(CGPoint, CGFloat)] = [
+            
+            (CGPointMake(300, 300), 60),
+            (CGPointMake(350, 120), 30),
+            (CGPointMake(-270, 283), 40),
+            (CGPointMake(-150, 320), 20),
+            (CGPointMake(100, 260), 10),
+//            (CGPointMake(300, 300), 60),
+//            (CGPointMake(300, 300), 60),
+//            (CGPointMake(300, 300), 60),
+//            (CGPointMake(300, 300), 60),
+            
+        
+        ]
+        
+        for (p, s) in asteroids {
+            
+            let asteroid = SKShapeNode(ellipseOfSize: CGSizeMake(s, s))
+            asteroid.fillColor = SKColor(white: 0.8, alpha: 1.0)
+            asteroid.position = p
+            
+//            asteroid.physicsBody = SKPhysicsBody(rectangleOfSize: asteroid.size)
+//            asteroid.physicsBody.categoryBitMask = PhysicsCategory.Asteroid
+//            asteroid.physicsBody.contactTestBitMask = PhysicsCategory.Spaceship
+            
+            
+            moon.addChild(asteroid)
+        }
+        
+        
+        // moon rotation action
         let moonRotation = SKAction.rotateByAngle(CGFloat(M_PI), duration: 20)
         moon.runAction(SKAction.repeatActionForever(moonRotation))
 
